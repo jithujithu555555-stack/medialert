@@ -1,0 +1,97 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediAlert Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-xl mx-auto space-y-6">
+        <!-- Input Form Card -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h1 class="text-xl font-bold mb-4 text-blue-600">MediAlert - Add Medicine</h1>
+            <div class="space-y-3">
+                <input type="text" id="medName" placeholder="Medicine Name" class="w-full p-2 border rounded">
+                <input type="date" id="expiryDate" class="w-full p-2 border rounded">
+                <input type="text" id="phone" placeholder="Phone Number" class="w-full p-2 border rounded">
+                <input type="number" id="shop_id" placeholder="Shop ID" class="w-full p-2 border rounded">
+                <button onclick="saveMedicine()" class="w-full bg-blue-600 text-white p-2 rounded font-semibold hover:bg-blue-700">Save & Check Expiry</button>
+            </div>
+        </div>
+
+        <!-- Expiring Soon View Card -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-lg font-semibold mb-3 text-red-600">Medicines Expiring Soon (View)</h2>
+            <div id="alertList" class="space-y-2 text-sm text-gray-700">
+                <p class="text-gray-500">Loading alerts...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://uxexvihnvokpllpwdxzj.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_0HQKMAZc76sIrOgvS9fBVA_KSkjxMo-";
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function loadExpiringMedicines() {
+            const { data, error } = await supabase.from('vw_expiring_soon').select('*');
+            const container = document.getElementById('alertList');
+            container.innerHTML = '';
+
+            if (error) {
+                container.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                container.innerHTML = `<p class="text-green-600">No medicines expiring soon!</p>`;
+                return;
+            }
+
+            data.forEach(item => {
+                container.innerHTML += `
+                    <div class="p-3 bg-red-50 border border-red-200 rounded flex justify-between items-center">
+                        <div>
+                            <p class="font-bold text-red-800">${item.medicine_name}</p>
+                            <p class="text-xs text-gray-500">Expiry: ${item.expiry_date} | Phone: ${item.phone_number || 'N/A'}</p>
+                        </div>
+                        <span class="bg-red-200 text-red-800 text-xs px-2 py-1 rounded font-bold">${item.days_left} days left</span>
+                    </div>
+                `;
+            });
+        }
+
+        async function saveMedicine() {
+            const medicine_name = document.getElementById('medName').value;
+            const expiry_date = document.getElementById('expiryDate').value;
+            const phone_number = document.getElementById('phone').value;
+            const shop_id = document.getElementById('shop_id').value;
+
+            if (!medicine_name || !expiry_date) {
+                alert('Please fill in the medicine name and expiry date.');
+                return;
+            }
+
+            const { error } = await supabase
+                .from('medicines')
+                .insert([{ medicine_name, expiry_date, phone_number, shop_id }]);
+
+            if (error) {
+                alert('Error saving: ' + error.message);
+            } else {
+                alert('Saved successfully!');
+                document.getElementById('medName').value = '';
+                document.getElementById('expiryDate').value = '';
+                document.getElementById('phone').value = '';
+                document.getElementById('shop_id').value = '';
+                loadExpiringMedicines();
+            }
+        }
+
+        loadExpiringMedicines();
+    </script>
+</body>
+</html>
