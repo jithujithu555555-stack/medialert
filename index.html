@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediAlert - Expiry Tracking for Medical Shops</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-4 text-blue-600">MediAlert Dashboard</h1>
+        <p class="text-sm text-gray-600 mb-6">Manage your shop inventory and track medicine expiries.</p>
+        
+        <div class="bg-blue-50 p-4 rounded-md mb-6 border border-blue-200">
+            <h2 class="font-semibold text-blue-900">Subscription Status</h2>
+            <p class="text-sm text-blue-700 mt-1">Status: <span class="font-bold">7-Day Free Trial Active</span></p>
+        </div>
+
+        <h3 class="text-lg font-semibold mb-2">Add New Medicine</h3>
+        <div class="space-y-4">
+            <input type="text" id="medName" placeholder="Medicine Name" class="w-full p-2 border rounded">
+            <input type="date" id="expiryDate" class="w-full p-2 border rounded">
+            <input type="text" id="phone" placeholder="Phone Number" class="w-full p-2 border rounded">
+            <input type="number" id="shopId" placeholder="Shop ID (e.g. 82187)" class="w-full p-2 border rounded">
+            <button onclick="addMedicine()" class="w-full bg-blue-600 text-white p-2 rounded font-semibold hover:bg-blue-700">Save Medicine</button>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://uxexvihnvokpllpwdxzj.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_0HQKMAZc76sIrOgvS9fBVA_KSkjxMo-";
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function addMedicine() {
+            const medicine_name = document.getElementById('medName').value;
+            const expiry_date = document.getElementById('expiryDate').value;
+            const phone_number = document.getElementById('phone').value;
+            const shop_id = document.getElementById('shop_id').value;
+
+            const { data, error } = await supabase
+                .from('medicines')
+                .insert([{ medicine_name, expiry_date, phone_number, shop_id }]);
+
+            if (error) {
+                alert('Error: ' + error.message);
+            } else {
+                alert('Medicine added successfully!');
+                document.getElementById('medName').value = '';
+                document.getElementById('expiryDate').value = '';
+            }
+        }
+    </script>
+</body>
+</html>
